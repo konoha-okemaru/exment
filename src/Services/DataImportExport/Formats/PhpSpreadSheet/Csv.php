@@ -62,28 +62,13 @@ class Csv extends PhpSpreadSheet
     }
 
 
-    protected function createWriter($spreadsheet)
-    {
-        $writer = IOFactory::createWriter($spreadsheet, 'Csv');
-        // append bom if config
-        if (boolval(config('exment.export_append_csv_bom', false))) {
-            $writer->setUseBOM(true);
-        }
-        return $writer;
-    }
-    
-    protected function createReader()
-    {
-        return IOFactory::createReader('Csv');
-    }
-
     /**
      * Get all csv's row count
      *
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
-    protected function getRowCount($files) : int
+    public function getRowCount($files) : int
     {
         $count = 0;
         if (is_string($files)) {
@@ -122,5 +107,20 @@ class Csv extends PhpSpreadSheet
         setlocale(LC_CTYPE, $original_locale);
 
         return $array;
+    }
+
+    public function createWriter($spreadsheet)
+    {
+        $writer = IOFactory::createWriter($spreadsheet, 'Csv');
+        // append bom if config
+        if (boolval(config('exment.export_append_csv_bom', false))) {
+            $writer->setUseBOM(true);
+        }
+        return $writer;
+    }
+    
+    public function createReader()
+    {
+        return IOFactory::createReader('Csv');
     }
 }

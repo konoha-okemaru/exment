@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
+use Exceedone\Exment\Services\DataImportExport\Formats;
 use Exceedone\Exment\Services\DataImportExport\Formats\CsvTrait;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
@@ -19,32 +20,14 @@ class Csv extends SpOut
      * @param string|array|\Illuminate\Support\Collection $files
      * @return int
      */
-    protected function getRowCount($files) : int
+    public function getRowCount($files) : int
     {
-        $count = 0;
-        if (is_string($files)) {
-            $files = [$files];
-        }
-
-        // get data count
-        foreach ($files as $file) {
-            $reader = $this->createReader();
-            $reader->setEncoding('UTF-8');
-            $reader->setFieldDelimiter(",");
-            $reader->open($file);
-            
-            // cannot row count directry, so loop
-            foreach ($reader->getSheetIterator() as $sheet) {
-                $sheetName = $sheet->getName();
-                foreach ($sheet->getRowIterator() as $row) {
-                    $count++;
-                }
-            }
-        }
-
-        return $count;
+        //*Use PhpSpreadSheet*
+        $phpSpreadSheet = new Formats\PhpSpreadSheet\Csv;
+        return $phpSpreadSheet->getRowCount($files);
     }
 
+    
     protected function getCsvArray($file, array $options = [])
     {
         $original_locale = setlocale(LC_CTYPE, 0);
@@ -76,7 +59,7 @@ class Csv extends SpOut
     /**
      * @return \Box\Spout\Writer\CSV\Writer
      */
-    protected function createWriter($spreadsheet)
+    public function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createCSVWriter();
     }
@@ -85,7 +68,7 @@ class Csv extends SpOut
     /**
      * @return \Box\Spout\Reader\CSV\Reader
      */
-    protected function createReader()
+    public function createReader()
     {
         return ReaderEntityFactory::createCSVReader();
     }

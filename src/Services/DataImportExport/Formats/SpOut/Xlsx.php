@@ -2,10 +2,10 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
+use Exceedone\Exment\Services\DataImportExport\Formats;
 use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
-use Box\Spout\Reader\ReaderAbstract;
  
 class Xlsx extends SpOut
 {
@@ -19,16 +19,21 @@ class Xlsx extends SpOut
     public function getDataTable($request, array $options = [])
     {
         $options = $this->getDataOptions($options);
-        return $this->_getData($request, function (ReaderAbstract $reader) use ($options) {
+        return $this->_getData($request, function ($request) use ($options) {
             // if over row size, return number
             if (boolval($options['checkCount'])) {
-                if (($count = $this->getRowCount($reader)) > (config('exment.import_max_row_count', 1000) + 2)) {
+                if (($count = $this->getRowCount($request)) > (config('exment.import_max_row_count', 1000) + 2)) {
                     return $count;
                 }
             }
 
             // get all data
             $datalist = [];
+
+            // open file
+            list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
+            $reader = $this->createReader();
+            $reader->open($path);
 
             foreach ($reader->getSheetIterator() as $sheet) {
                 $sheetName = $sheet->getName();
@@ -44,10 +49,12 @@ class Xlsx extends SpOut
     {
         list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
         
-        $reader = $this->createReader();
-        $reader->open($path);
+        // not read here. Because SpOut open is too slow
+        // $reader = $this->createReader();
+        // $reader->open($path);
         try {
-            return $callback($reader);
+            //return $callback($reader);
+            return $callback($request);
         } finally {
         }
     }
@@ -56,30 +63,25 @@ class Xlsx extends SpOut
     /**
      * Get all sheet's row count
      *
-     * @param ReaderAbstract $reader
      * @return int
      */
-    protected function getRowCount(ReaderAbstract $reader) : int
+    public function getRowCount($request) : int
     {
-        $count = 0;
+        //*Use PhpSpreadSheet*
+        $phpSpreadSheet = new Formats\PhpSpreadSheet\Xlsx;
 
-        // get data count
-        // cannot row count directry, so loop
-        foreach ($reader->getSheetIterator() as $sheet) {
-            $sheetName = $sheet->getName();
-            foreach ($sheet->getRowIterator() as $row) {
-                $count++;
-            }
-        }
-
-        return $count;
+        list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
+        $reader = $phpSpreadSheet->createReader();
+        $spreadsheet = $reader->load($path);
+        
+        return $phpSpreadSheet->getRowCount($spreadsheet);
     }
 
     
     /**
      * @return \Box\Spout\Writer\XLSX\Writer
      */
-    protected function createWriter($spreadsheet)
+    public function createWriter($spreadsheet)
     {
         return WriterEntityFactory::createXLSXWriter();
     }
@@ -88,7 +90,7 @@ class Xlsx extends SpOut
     /**
      * @return \Box\Spout\Reader\XLSX\Reader
      */
-    protected function createReader()
+    public function createReader()
     {
         return ReaderEntityFactory::createXLSXReader();
     }

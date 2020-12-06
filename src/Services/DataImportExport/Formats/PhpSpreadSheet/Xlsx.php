@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\DataImportExport\Formats\PhpSpreadSheet;
 
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
 
 class Xlsx extends PhpSpreadSheet
@@ -57,10 +58,10 @@ class Xlsx extends PhpSpreadSheet
     /**
      * Get all sheet's row count
      *
-     * @param \PhpOffice\PhpSpreadsheet\Spreadsheet $spreadsheet
+     * @param Spreadsheet $spreadsheet
      * @return int
      */
-    protected function getRowCount($spreadsheet) : int
+    public function getRowCount($spreadsheet) : int
     {
         $count = 0;
 
@@ -74,12 +75,12 @@ class Xlsx extends PhpSpreadSheet
     }
 
     
-    protected function createWriter($spreadsheet)
+    public function createWriter($spreadsheet)
     {
         return IOFactory::createWriter($spreadsheet, 'Xlsx');
     }
     
-    protected function createReader()
+    public function createReader()
     {
         return IOFactory::createReader('Xlsx');
     }
